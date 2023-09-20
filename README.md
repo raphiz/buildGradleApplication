@@ -157,7 +157,27 @@ Checkout the [`application` plugin documentation](https://docs.gradle.org/curren
 ## Installation (via flakes)
 
 ```nix
-# TODO
+{
+  inputs = {
+    build-gradle-application.url = "github:raphiz/buildGradleApplication";
+    # ...
+  };
+
+  # ...
+  outputs = {
+    nixpkgs,
+    build-gradle-application,
+    ...
+    }: {
+        # ...
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [build-gradle-application.overlays.default];
+        };
+        # ...
+    };
+}
+
 ```
 
 ## Usage
