@@ -184,7 +184,7 @@ buildGradleApplication {
 
 For further examples, checkout the [example repository](https://github.com/raphiz/buildGradleApplication-examples/)
 
-All available parameters of `buildGradleApplication` are documented in the [source code](https://github.com/raphiz/blob/master/buildGradleApplication/buildGradleApplication/default.nix)
+All available parameters of `buildGradleApplication` are documented in the [source code](https://github.com/raphiz/buildGradleApplication/blob/main/buildGradleApplication/default.nix)
 
 ## Additional Information
 
@@ -194,7 +194,7 @@ Sadly, many Maven repositories contain the same artifacts but with different met
 
 ### Very slow first build
 
-The first build with `` might be very slow. The reason for this is, that each maven artifact is a dedicated derivation and derivations are not built in parallel by default.
+The first build with `buildGradleApplication` might be very slow. The reason for this is, that each maven artifact is a dedicated derivation and derivations are not built in parallel by default.
 You can speed up the first build by enabling concurrent builds, for example:
 
 ```bash
