@@ -88,6 +88,8 @@
       runHook postBuild
     '';
     installPhase = ''
+      runHook preInstall
+
       mkdir -p $out/lib/
       mv ${installLocaltion}/lib/*.jar $out/lib/
 
@@ -99,6 +101,8 @@
 
       wrapProgram $out/bin/${pname} \
          --set-default JDK_HOME "${jdk.home}"
+
+      runHook postInstall
     '';
   };
 in
