@@ -70,6 +70,8 @@
     inherit pname version src meta buildInputs;
     nativeBuildInputs = [gradle jdk makeWrapper] ++ nativeBuildInputs;
     buildPhase = ''
+      runHook preBuild
+
       # Setup maven repo
       export MAVEN_SOURCE_REPOSITORY=${m2Repository}
       echo "Using maven repository at: $MAVEN_SOURCE_REPOSITORY"
@@ -82,6 +84,8 @@
 
       # built the dam thing!
       gradle --offline --no-daemon --no-watch-fs --no-configuration-cache --no-build-cache --console=plain ${buildTask}
+
+      runHook postBuild
     '';
     installPhase = ''
       mkdir -p $out/lib/
