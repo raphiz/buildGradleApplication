@@ -100,7 +100,7 @@
       cp $(ls ${installLocaltion}/bin/* | grep -v ".bat") $out/bin/${pname}
 
       wrapProgram $out/bin/${pname} \
-         --set-default JDK_HOME "${jdk.home}"
+         --set-default JAVA_HOME "${jdk.home}"
 
       runHook postInstall
     '';
