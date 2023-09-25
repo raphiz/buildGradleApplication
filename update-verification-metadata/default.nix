@@ -5,7 +5,7 @@
   writeShellApplication,
 }: let
   verificationFile = "gradle/verification-metadata.xml";
-  cmd = "gradle --refresh-dependencies --write-verification-metadata sha256 --write-locks prepareKotlinBuildScriptModel";
+  cmd = "gradle --refresh-dependencies --write-verification-metadata sha256 prepareKotlinBuildScriptModel";
 in
   writeShellApplication {
     name = "update-verification-metadata";
