@@ -18,6 +18,7 @@
         overlays = {
           default = final: prev: {
             fetchArtifact = prev.callPackage ./fetchArtefact/default.nix {};
+            mkM2Repository = prev.callPackage ./buildGradleApplication/mkM2Repository.nix {};
             buildGradleApplication = prev.callPackage ./buildGradleApplication/default.nix {};
             updateVerificationMetadata = prev.callPackage ./update-verification-metadata/default.nix {};
           };

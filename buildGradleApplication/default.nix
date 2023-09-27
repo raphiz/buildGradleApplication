@@ -8,6 +8,7 @@
   jdk,
   makeWrapper,
   fetchArtifact,
+  mkM2Repository,
 }: {
   pname,
   version,
@@ -20,30 +21,8 @@
   buildTask ? ":installDist",
   installLocaltion ? "build/install/*/",
 }: let
-  # Read all build and runtime dependencies from the verification-metadata XML
-  depSpecs = builtins.fromJSON (builtins.readFile (
-    runCommand "depSpecs" {buildInputs = [python3];}
-    "python ${./parse.py} ${src}/${verificationFile} ${builtins.toString (builtins.map lib.escapeShellArg repositories)}> $out"
-  ));
-  mkDep = depSpec: {
-    inherit (depSpec) urls path name hash component;
-    jar = fetchArtifact {
-      inherit (depSpec) urls hash name;
-    };
-  };
-  deps = builtins.map (depSpec: mkDep depSpec) depSpecs;
-
-  # Build maven repository that contains all build dependencies
-
-  # write a dedicated script for the m2 repository creation. Otherwise, the m2Repository derivation might crash with 'Argument list too long'
-  m2CreationScript = writeShellScript "create-m2-repository" (lib.concatMapStringsSep "\n" (dep: "mkdir -p $out/${dep.path}\nln -s ${builtins.toString dep.jar} $out/${dep.path}/${dep.name}") deps);
-  m2Repository = stdenvNoCC.mkDerivation {
-    inherit version src;
-    pname = "${pname}-m2-repository";
-    installPhase = ''
-      mkdir $out
-      ${m2CreationScript}
-    '';
+  m2Repository = mkM2Repository {
+    inherit pname version src repositories verificationFile;
   };
 
   # Prepare a script that will replace that jars with references into the NIX store.
@@ -52,7 +31,7 @@
     ${
       lib.concatMapStringsSep "\n"
       (dep: "depsByName[\"${dep.name}\"]=\"${builtins.toString dep.jar}\"")
-      (builtins.filter (dep: (lib.strings.hasSuffix ".jar" dep.name && !lib.strings.hasSuffix "-javadoc.jar" dep.name && !lib.strings.hasSuffix "-sources.jar" dep.name)) deps)
+      (builtins.filter (dep: (lib.strings.hasSuffix ".jar" dep.name && !lib.strings.hasSuffix "-javadoc.jar" dep.name && !lib.strings.hasSuffix "-sources.jar" dep.name)) m2Repository.dependencies)
     }
 
     find $out/lib/ -type f > jars
@@ -73,7 +52,7 @@
       runHook preBuild
 
       # Setup maven repo
-      export MAVEN_SOURCE_REPOSITORY=${m2Repository}
+      export MAVEN_SOURCE_REPOSITORY=${m2Repository.m2Repository}
       echo "Using maven repository at: $MAVEN_SOURCE_REPOSITORY"
 
       # create temporary gradle home
