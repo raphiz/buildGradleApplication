@@ -156,7 +156,7 @@ Checkout the [`application` plugin documentation](https://docs.gradle.org/curren
 
 ### Rule #5: Tell gradle to be more reproducible
 
-Gradle has a few switches to make builds more reproducible. These must be set to ensure proper reproducibility of the genereated `.jar` files.
+Gradle has [a few switches to make builds more reproducible](https://docs.gradle.org/current/userguide/working_with_files.html#sec:reproducible_archives). These must be set to ensure proper reproducibility of the genereated `.jar` files.
 
 ```kotlin
 tasks.withType<AbstractArchiveTask>().configureEach {
