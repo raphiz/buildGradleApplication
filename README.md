@@ -154,6 +154,17 @@ application {
 
 Checkout the [`application` plugin documentation](https://docs.gradle.org/current/userguide/application_plugin.html) for any further details.
 
+### Rule #5: Tell gradle to be more reproducible
+
+Gradle has a few switches to make builds more reproducible. These must be set to ensure proper reproducibility of the genereated `.jar` files.
+
+```kotlin
+tasks.withType<AbstractArchiveTask>().configureEach {
+    isPreserveFileTimestamps = false
+    isReproducibleFileOrder = true
+}
+```
+
 ## Installation (via flakes)
 
 ```nix
