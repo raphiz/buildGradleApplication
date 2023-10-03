@@ -62,7 +62,7 @@
       export APP_VERSION=${version}
 
       # built the dam thing!
-      gradle --offline --no-daemon --no-watch-fs --no-configuration-cache --no-build-cache --console=plain ${buildTask}
+      gradle --offline --no-daemon --no-watch-fs --no-configuration-cache --no-build-cache --console=plain --init-script ${./init.gradle.kts} ${buildTask}
 
       runHook postBuild
     '';

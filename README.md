@@ -82,39 +82,27 @@ buildGradleApplication {
 }
 ```
 
-### Rule #4: Honor the `MAVEN_SOURCE_REPOSITORY` Environment Variable
+### Rule #4: Centralized Repository
 
 Because Nix uses a sandbox which prevents internet access during build time, `buildGradleApplication` needs to pre fetch all required artifacts. These are then made available to the offline build using a local maven repository. The location of this repository depends on [it's contents](https://nixos.org/guides/nix-pills/nix-store-paths) and is provided to the Gradle build via the  `MAVEN_SOURCE_REPOSITORY` Environment Variable.
 
-It's a Gradle best practice to [centralize repositories declarations](https://docs.gradle.org/current/userguide/declaring_repositories.html#sub:centralized-repository-declaration). This makes it relatively simple to dynamically register the local repository instead of eg. Maven Central and the Gradle Plugin portal.
+It's a Gradle best practice to [centralize repositories declarations](https://docs.gradle.org/current/userguide/declaring_repositories.html#sub:centralized-repository-declaration). 
+
+`buildGradleApplication` assumes that all repository declarations are located in your `settings.gradle(.kts)` files. It will then replace these declarations during build time with the location of the offline repository (using a [Gradle init script](./buildGradleApplication/init.gradle.kts))
+
+Here is an example of how your Gradle build should declare it's repositories:
 
 ```kotlin
 // settings.gradle.kts
 pluginManagement {
     repositories {
-        System.getenv("MAVEN_SOURCE_REPOSITORY")?.let {
-            maven(it) {
-                metadataSources {
-                    gradleMetadata()
-                    mavenPom()
-                    artifact()
-                }
-            }
-        } ?: gradlePluginPortal()
+        gradlePluginPortal()
     }
 }
 
 dependencyResolutionManagement {
     repositories {
-        System.getenv("MAVEN_SOURCE_REPOSITORY")?.let {
-            maven(it) {
-                metadataSources {
-                    gradleMetadata()
-                    mavenPom()
-                    artifact()
-                }
-            }
-        } ?: mavenCentral()
+        mavenCentral()
     }
 
     // Highly recommended, see https://docs.gradle.org/current/userguide/declaring_repositories.html#sub:centralized-repository-declaration
@@ -122,9 +110,9 @@ dependencyResolutionManagement {
 }
 ```
 
-Note that repository declarations must be duplicated for each [included build](https://docs.gradle.org/current/userguide/composite_builds.html).
+Note that repository declarations must be defined for each [included build](https://docs.gradle.org/current/userguide/composite_builds.html) as well.
 
-Note that `buildGradleApplication` is (currently) unable to extract the declared repositories from your Gradle build. If you use different or additional repositories, you must provide it to `buildGradleApplication` using the `repositories` parameter:
+Also Note that `buildGradleApplication` is (currently) unable to extract the declared repositories from your Gradle build. If you use different or additional repositories, you must provide it to `buildGradleApplication` using the `repositories` parameter:
 
 ```nix
 buildGradleApplication {
