@@ -2,7 +2,7 @@
   description = "A Nix builder function for packaging Gradle applications";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/release-23.11";
   };
 
   outputs = inputs @ {
