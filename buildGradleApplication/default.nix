@@ -34,7 +34,7 @@
       (builtins.filter (dep: (lib.strings.hasSuffix ".jar" dep.name && !lib.strings.hasSuffix "-javadoc.jar" dep.name && !lib.strings.hasSuffix "-sources.jar" dep.name)) m2Repository.dependencies)
     }
 
-    find $out/lib/ -type f > jars
+    find $0 -type f > jars
     while IFS= read -r jar; do
       dep=''${depsByName[$(basename "$jar")]}
       if [[ -n "$dep" ]]; then
@@ -71,8 +71,13 @@
 
       mkdir -p $out/lib/
       mv ${installLocaltion}/lib/*.jar $out/lib/
+      ${linkScript} $out/lib/
 
-      ${linkScript}
+      if [ -d ${installLocaltion}/agent-libs/ ]; then
+          mkdir -p $out/agent-libs/
+          mv ${installLocaltion}/agent-libs/*.jar $out/agent-libs/
+          ${linkScript} $out/agent-libs/
+      fi
 
       mkdir -p $out/bin
 
