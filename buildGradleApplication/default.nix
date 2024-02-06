@@ -68,24 +68,26 @@
     '';
     installPhase = ''
       runHook preInstall
+      pushd ${installLocaltion}
 
       mkdir -p $out/lib/
-      mv ${installLocaltion}/lib/*.jar $out/lib/
+      mv lib/*.jar $out/lib/
       ${linkScript} $out/lib/
 
-      if [ -d ${installLocaltion}/agent-libs/ ]; then
+      if [ -d agent-libs/ ]; then
           mkdir -p $out/agent-libs/
-          mv ${installLocaltion}/agent-libs/*.jar $out/agent-libs/
+          mv agent-libs/*.jar $out/agent-libs/
           ${linkScript} $out/agent-libs/
       fi
 
       mkdir -p $out/bin
 
-      cp $(ls ${installLocaltion}/bin/* | grep -v ".bat") $out/bin/${pname}
+      cp $(ls bin/* | grep -v ".bat") $out/bin/${pname}
 
       wrapProgram $out/bin/${pname} \
          --set-default JAVA_HOME "${jdk.home}"
 
+      popd
       runHook postInstall
     '';
   };
