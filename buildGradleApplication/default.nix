@@ -34,15 +34,14 @@
       (builtins.filter (dep: (lib.strings.hasSuffix ".jar" dep.name && !lib.strings.hasSuffix "-javadoc.jar" dep.name && !lib.strings.hasSuffix "-sources.jar" dep.name)) m2Repository.dependencies)
     }
 
-    find $0 -type f > jars
-    while IFS= read -r jar; do
+    for jar in "$1"/*.jar; do
       dep=''${depsByName[$(basename "$jar")]}
       if [[ -n "$dep" ]]; then
           echo "Replacing $jar with nix store reference $dep"
           rm "$jar"
           ln -s "$dep" "$jar"
       fi
-    done < jars
+    done
   '';
 
   package = stdenvNoCC.mkDerivation {
