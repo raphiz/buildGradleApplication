@@ -19,6 +19,7 @@
 
 - `buildGradleApplication` is _not_ a general purpose solution for building arbitrary Gradle projects. If you want to do that, check out [gradle2nix](https://github.com/tadfisher/gradle2nix) instead.
 - Do not try to replicate Gradle's behaviour, e.g. to construct a runtime classpath. Instead, use the Gradle built-ins to produce these results.
+- Android. But if you have experience in Android, talk to me! It might not be that hard to support android instead (by breaking/adopting Rule #4).
 
 ## Rules
 
