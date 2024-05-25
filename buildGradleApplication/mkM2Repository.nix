@@ -12,20 +12,10 @@
   repositories ? ["https://plugins.gradle.org/m2/" "https://repo1.maven.org/maven2/"],
   verificationFile ? "gradle/verification-metadata.xml",
 }: let
-  filteredSrc = let
-    origSrc =
-      if src ? _isLibCleanSourceWith
-      then src.origSrc
-      else src;
-    getRelativePath = path: lib.removePrefix (toString origSrc + "/") path;
-    cleanedSource = lib.cleanSourceWith {
-      src = src;
-      filter = path: type: lib.hasPrefix (getRelativePath path) verificationFile;
-    };
-  in
-    if lib.canCleanSource src
-    then cleanedSource
-    else src;
+  filteredSrc = lib.fileset.toSource {
+    root = src;
+    fileset = lib.path.append src verificationFile;
+  };
 
   # Read all build and runtime dependencies from the verification-metadata XML
   depSpecs = builtins.fromJSON (builtins.readFile (
