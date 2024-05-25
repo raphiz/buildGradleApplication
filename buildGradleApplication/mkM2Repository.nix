@@ -1,7 +1,7 @@
 {
   lib,
   stdenvNoCC,
-  runCommand,
+  runCommandNoCC,
   writeShellScript,
   python3,
   fetchArtifact,
@@ -19,7 +19,7 @@
 
   # Read all build and runtime dependencies from the verification-metadata XML
   depSpecs = builtins.fromJSON (builtins.readFile (
-    runCommand "depSpecs" {buildInputs = [python3];}
+    runCommandNoCC "depSpecs" {buildInputs = [python3];}
     "python ${./parse.py} ${filteredSrc}/${verificationFile} ${builtins.toString (builtins.map lib.escapeShellArg repositories)}> $out"
   ));
   mkDep = depSpec: {
@@ -31,14 +31,11 @@
   dependencies = builtins.map (depSpec: mkDep depSpec) depSpecs;
 
   # write a dedicated script for the m2 repository creation. Otherwise, the m2Repository derivation might crash with 'Argument list too long'
-  m2CreationScript = writeShellScript "create-m2-repository" (lib.concatMapStringsSep "\n" (dep: "mkdir -p $out/${dep.path}\nln -s ${builtins.toString dep.jar} $out/${dep.path}/${dep.name}") dependencies);
-  m2Repository = stdenvNoCC.mkDerivation {
-    inherit version;
-    src = filteredSrc;
-    pname = "${pname}-m2-repository";
-    installPhase = ''
-      mkdir $out
-      ${m2CreationScript}
-    '';
-  };
+  m2Repository =
+    runCommandNoCC "${pname}-m2-repository"
+    {src = filteredSrc;}
+    (
+      "mkdir $out"
+      + lib.concatMapStringsSep "\n" (dep: "mkdir -p $out/${dep.path}\nln -s ${builtins.toString dep.jar} $out/${dep.path}/${dep.name}") dependencies
+    );
 in {inherit dependencies m2Repository;}
