@@ -21,6 +21,7 @@
             mkM2Repository = prev.callPackage ./buildGradleApplication/mkM2Repository.nix {};
             buildGradleApplication = prev.callPackage ./buildGradleApplication/default.nix {};
             updateVerificationMetadata = prev.callPackage ./update-verification-metadata/default.nix {};
+            updateGradleVersion = prev.callPackage ./update-gradle-version/default.nix {};
           };
         };
       };
