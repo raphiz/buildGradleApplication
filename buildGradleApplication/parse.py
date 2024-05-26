@@ -35,7 +35,11 @@ def main():
             "urls": [f"{maven_repo}/{path}/{artifact.name}" for maven_repo in maven_repos],
             "path": path,
             "name": artifact.name,
-            "component": f"{artifact.component.group}:{artifact.component.name}:{artifact.component.version}",
+            "component": {
+                "group": artifact.component.group,
+                "name": artifact.component.name,
+                "version": artifact.component.version,
+            },
             "hash": toSri(artifact.hash.algo, artifact.hash.value)
         }
         outputs.append(output)

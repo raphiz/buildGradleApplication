@@ -9,6 +9,7 @@
   pname,
   version,
   src,
+  dependencyFilter ? depSpec: true,
   repositories ? ["https://plugins.gradle.org/m2/" "https://repo1.maven.org/maven2/"],
   verificationFile ? "gradle/verification-metadata.xml",
 }: let
@@ -17,11 +18,13 @@
     fileset = lib.path.append src verificationFile;
   };
 
-  # Read all build and runtime dependencies from the verification-metadata XML
-  depSpecs = builtins.fromJSON (builtins.readFile (
-    runCommandNoCC "depSpecs" {buildInputs = [python3];}
-    "python ${./parse.py} ${filteredSrc}/${verificationFile} ${builtins.toString (builtins.map lib.escapeShellArg repositories)}> $out"
-  ));
+  depSpecs = builtins.filter dependencyFilter (
+    # Read all build and runtime dependencies from the verification-metadata XML
+    builtins.fromJSON (builtins.readFile (
+      runCommandNoCC "depSpecs" {buildInputs = [python3];}
+      "python ${./parse.py} ${filteredSrc}/${verificationFile} ${builtins.toString (builtins.map lib.escapeShellArg repositories)}> $out"
+    ))
+  );
   mkDep = depSpec: {
     inherit (depSpec) urls path name hash component;
     jar = fetchArtifact {
