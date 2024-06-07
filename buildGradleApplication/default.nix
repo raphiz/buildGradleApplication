@@ -1,11 +1,10 @@
 {
+  pkgs,
   lib,
   stdenvNoCC,
   runCommand,
   writeShellScript,
   python3,
-  gradle,
-  jdk,
   makeWrapper,
   fetchArtifact,
   mkM2Repository,
@@ -14,13 +13,15 @@
   version,
   src,
   meta,
+  jdk ? pkgs.jdk,
+  gradle ? pkgs.gradle,
   buildInputs ? [],
   nativeBuildInputs ? [],
   dependencyFilter ? depSpec: true,
   repositories ? ["https://plugins.gradle.org/m2/" "https://repo1.maven.org/maven2/"],
   verificationFile ? "gradle/verification-metadata.xml",
   buildTask ? ":installDist",
-  installLocaltion ? "build/install/*/",
+  installLocation ? "build/install/*/",
 }: let
   m2Repository = mkM2Repository {
     inherit pname version src dependencyFilter repositories verificationFile;
@@ -66,9 +67,10 @@
 
       runHook postBuild
     '';
+
     installPhase = ''
       runHook preInstall
-      pushd ${installLocaltion}
+      pushd ${installLocation}
 
       mkdir -p $out/lib/
       mv lib/*.jar $out/lib/

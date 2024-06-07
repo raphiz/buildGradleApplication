@@ -1,11 +1,15 @@
 {
-  gradle,
+  pkgs,
   python3,
   git,
   writeShellApplication,
+}: {
+  jdk ? pkgs.jdk,
+  gradle ? pkgs.gradle,
+  update_action ? "prepareKotlinBuildScriptModel",
 }: let
   verificationFile = "gradle/verification-metadata.xml";
-  cmd = "gradle --refresh-dependencies --write-verification-metadata sha256 prepareKotlinBuildScriptModel";
+  cmd = "gradle --refresh-dependencies --write-verification-metadata sha256 ${update_action}";
 in
   writeShellApplication {
     name = "update-verification-metadata";
