@@ -2,11 +2,8 @@
   pkgs,
   lib,
   stdenvNoCC,
-  runCommand,
   writeShellScript,
-  python3,
   makeWrapper,
-  fetchArtifact,
   mkM2Repository,
 }: {
   pname,

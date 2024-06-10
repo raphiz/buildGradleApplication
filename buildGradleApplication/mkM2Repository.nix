@@ -1,8 +1,6 @@
 {
   lib,
-  stdenvNoCC,
   runCommandNoCC,
-  writeShellScript,
   python3,
   fetchArtifact,
 }: {

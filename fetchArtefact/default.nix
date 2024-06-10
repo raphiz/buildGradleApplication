@@ -1,6 +1,4 @@
 {
-  lib,
-  buildPackages,
   stdenvNoCC,
   curl,
   nix,
