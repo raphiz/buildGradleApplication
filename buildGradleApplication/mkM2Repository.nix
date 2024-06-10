@@ -33,7 +33,7 @@
 
   # write a dedicated script for the m2 repository creation. Otherwise, the m2Repository derivation might crash with 'Argument list too long'
   m2Repository =
-    runCommandNoCC "${pname}-m2-repository"
+    runCommandNoCC "${pname}-${version}-m2-repository"
     {src = filteredSrc;}
     (
       "mkdir $out"
