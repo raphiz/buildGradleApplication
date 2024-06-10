@@ -55,7 +55,7 @@ Once such a `verification-metadata.xml` file exists, Gradle will refuse to downl
 Here is an example command to let Gradle add all dependency artifacts to your `verification-metadata.xml`:
 
 ```bash
-gradle --refresh-dependencies --write-verification-metadata sha256 --write-locks prepareKotlinBuildScriptModel
+gradle --refresh-dependencies --write-verification-metadata sha256 --write-locks dependencies
 ```
 
 Gradle not remove any artefacts from the `verification-metadata.xml` even if they are not used anymore. This can lead to . The `updateVerificationMetadata` package from this flake can be used to re-generate the file while keeping the `<configuration>` section. You must ensure that the Gradle version and JDK version align.
