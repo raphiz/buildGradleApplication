@@ -10,9 +10,7 @@
     nixpkgs,
     flake-parts,
     ...
-  }: let
-    version = self.shortRev or "dirty";
-  in
+  }:
     flake-parts.lib.mkFlake {inherit inputs;} {
       flake = {
         overlays = {
