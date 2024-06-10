@@ -1,10 +1,8 @@
 {
-  pkgs,
   python3,
   git,
   writeShellApplication,
-}: {
-  gradle ? pkgs.gradle,
+  gradle,
   updateAction ? "dependencies",
   cmd ? "gradle --refresh-dependencies --write-verification-metadata sha256 ${updateAction}",
   verificationFile ? "gradle/verification-metadata.xml",
