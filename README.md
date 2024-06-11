@@ -12,7 +12,7 @@
 - Using the builder function should feel idiomatic to Nix. It should provide the same experience as `buildPythonPackage` or `buildPerlPackage` but with fewer options.
 - The rules imposed on the Gradle build should be idiomatic to Gradle and ideally promote Gradle best practices.
 - Support automatic updates with tools such as renovate.
-- All dependencies (jars) should be packaged into discrete derivations to facilitate efficient deployments and [layered OIC images](https://ryantm.github.io/nixpkgs/builders/images/dockertools/#ssec-pkgs-dockerTools-buildLayeredImage).
+- All dependencies (jars) should be packaged into discrete derivations (and linked in the final result) to facilitate efficient deployments and [layered OIC images](https://ryantm.github.io/nixpkgs/builders/images/dockertools/#ssec-pkgs-dockerTools-buildLayeredImage).
 - This project should be small and simple.
 
 ## Non-Goals

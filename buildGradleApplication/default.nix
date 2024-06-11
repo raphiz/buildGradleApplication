@@ -26,19 +26,34 @@
 
   # Prepare a script that will replace that jars with references into the NIX store.
   linkScript = writeShellScript "link-to-jars" ''
-    declare -A depsByName
+    declare -A fileByName
+    declare -A hashByName
     ${
       lib.concatMapStringsSep "\n"
-      (dep: "depsByName[\"${dep.name}\"]=\"${builtins.toString dep.jar}\"")
+      (dep: "fileByName[\"${dep.name}\"]=\"${builtins.toString dep.jar}\"\nhashByName[\"${dep.name}\"]=\"${builtins.toString dep.hash}\"")
       (builtins.filter (dep: (lib.strings.hasSuffix ".jar" dep.name && !lib.strings.hasSuffix "-javadoc.jar" dep.name && !lib.strings.hasSuffix "-sources.jar" dep.name)) m2Repository.dependencies)
     }
 
     for jar in "$1"/*.jar; do
-      dep=''${depsByName[$(basename "$jar")]}
+      dep=''${fileByName[$(basename "$jar")]}
       if [[ -n "$dep" ]]; then
-          echo "Replacing $jar with nix store reference $dep"
-          rm "$jar"
-          ln -s "$dep" "$jar"
+          jarHash=$(sha256sum "$jar" | cut -c -64)
+          sriHash=''${hashByName[$(basename "$jar")]}
+          if [[ $sriHash == sha256-* ]]; then
+            referenceHash="$(echo ''${sriHash#sha256-} | base64 -d | ${pkgs.hexdump}/bin/hexdump -v -e '/1 "%02x"')"
+          else
+            referenceHash=$(sha256sum "$dep" | cut -c -64)
+          fi
+
+          if [[ "$referenceHash" == "$jarHash" ]]; then
+            echo "Replacing $jar with nix store reference $dep"
+            rm "$jar"
+            ln -s "$dep" "$jar"
+          else
+            echo "Hash of $jar differs from expected store reference $dep"
+          fi
+      else
+        echo "No linking candidate found for $jar"
       fi
     done
   '';
@@ -71,6 +86,7 @@
 
       mkdir -p $out/lib/
       mv lib/*.jar $out/lib/
+      echo ${linkScript} $out/lib/
       ${linkScript} $out/lib/
 
       if [ -d agent-libs/ ]; then
