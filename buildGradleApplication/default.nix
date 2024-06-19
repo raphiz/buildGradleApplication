@@ -5,7 +5,12 @@
   writeShellScript,
   makeWrapper,
   mkM2Repository,
-}: {
+}:
+let
+  cleanAttrs = lib.flip removeAttrs [
+    "pname" "version" "src" "meta" "jdk" "gradle" "buildInputs" "nativeBuildInputs" "dependencyFilter" "repositories" "verificationFile" "buildTask" "installLocation" "dontWrapGApps"
+  ];
+in {
   pname,
   version,
   src,
@@ -19,7 +24,9 @@
   verificationFile ? "gradle/verification-metadata.xml",
   buildTask ? ":installDist",
   installLocation ? "build/install/*/",
-}: let
+  ...
+} @ attrs:
+let
   m2Repository = mkM2Repository {
     inherit pname version src dependencyFilter repositories verificationFile;
   };
@@ -58,7 +65,7 @@
     done
   '';
 
-  package = stdenvNoCC.mkDerivation {
+  package = lib.makeOverridable stdenvNoCC.mkDerivation ((cleanAttrs attrs) // {
     inherit pname version src meta buildInputs;
     nativeBuildInputs = [gradle jdk makeWrapper] ++ nativeBuildInputs;
     buildPhase = ''
@@ -99,12 +106,16 @@
 
       cp $(ls bin/* | grep -v ".bat") $out/bin/${pname}
 
-      wrapProgram $out/bin/${pname} \
-         --set-default JAVA_HOME "${jdk.home}"
-
       popd
       runHook postInstall
     '';
-  };
+
+    dontWrapGApps = true;
+    postFixup = ''
+      wrapProgram $out/bin/${pname} \
+        --set-default JAVA_HOME "${jdk.home}" \
+        ''${gappsWrapperArgs[@]}
+    '';
+  });
 in
   package
