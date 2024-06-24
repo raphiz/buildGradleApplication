@@ -65,7 +65,7 @@ let
     done
   '';
 
-  package = lib.makeOverridable stdenvNoCC.mkDerivation ((cleanAttrs attrs) // {
+  package = stdenvNoCC.mkDerivation ((cleanAttrs attrs) // {
     inherit pname version src meta buildInputs;
     nativeBuildInputs = [gradle jdk makeWrapper] ++ nativeBuildInputs;
     buildPhase = ''
