@@ -26,16 +26,14 @@ check_hash() {
     fi
 }
 
-# expected variables to be set:
-name="${name:?}"
-out="${out:?}"
-urls="${urls:?}"
-hash="${hash:?}"
+fetch_url() {
+    local url="$1"
+    local nix_curl_flags=$2
 
-for url in $urls; do
     echo "Downloading $name from $url"
 
-    if "${curl[@]}" --retry 0 --connect-timeout "${NIX_CONNECT_TIMEOUT:-15}" \
+    if "${curl[@]}" $nix_curl_flags --retry 0 \
+        --connect-timeout "${NIX_CONNECT_TIMEOUT:-15}" \
         --fail --silent --show-error --head "$url" \
         --write-out "%{http_code}" --output /dev/null > code 2> log; then
 
@@ -59,6 +57,20 @@ for url in $urls; do
             echo "error checking the existence of $url:"
             cat log
     fi
+}
+
+# expected variables to be set:
+name="${name:?}"
+out="${out:?}"
+urls="${urls:?}"
+hash="${hash:?}"
+
+if [ -n "$private_url" ]; then
+    fetch_url "$private_url" $NIX_CURL_FLAGS
+fi
+
+for url in $urls; do
+    fetch_url "$url"
 done
 
 echo "File $name was not found with hash $hash on any of the given urls"

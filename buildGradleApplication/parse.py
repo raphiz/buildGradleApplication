@@ -3,6 +3,7 @@ import xml.etree.ElementTree as ET
 import json
 from dataclasses import dataclass
 import base64
+import argparse
 
 @dataclass
 class Component:
@@ -25,8 +26,16 @@ def main():
     if len(sys.argv) <= 1:
         print("Missing verification.xml file")
         sys.exit(1)
-    artifacts = parse(sys.argv[1])
-    maven_repos = [repository.rstrip("/") for repository in sys.argv[2:]]
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-f", "--verification-file", required=True)
+    parser.add_argument("-r", "--repository", dest="repositories", action="extend", nargs="+")
+    parser.add_argument("-p", "--private-repository")
+    args = parser.parse_args()
+
+    artifacts = parse(args.verification_file)
+    maven_repos = [repository.rstrip("/") for repository in args.repositories]
+    private_maven_repo = None if args.private_repository is None else args.private_repository.rstrip("/")
 
     outputs = []
     for artifact in artifacts:
@@ -42,6 +51,8 @@ def main():
             },
             "hash": toSri(artifact.hash.algo, artifact.hash.value)
         }
+        if private_maven_repo is not None:
+            output["privateUrl"] = f"{private_maven_repo}/{path}/{artifact.name}"
         outputs.append(output)
     print(json.dumps(outputs))
 
