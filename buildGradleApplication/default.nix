@@ -113,11 +113,15 @@
 
       cp $(ls bin/* | grep -v ".bat") $out/bin/${pname}
 
-      wrapProgram $out/bin/${pname} \
-         --set-default JAVA_HOME "${jdk.home}"
-
       popd
       runHook postInstall
+    '';
+
+    dontWrapGApps = true;
+    postFixup = ''
+      wrapProgram $out/bin/${pname} \
+        --set-default JAVA_HOME "${jdk.home}" \
+        ''${gappsWrapperArgs[@]}
     '';
   };
 in
