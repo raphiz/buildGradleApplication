@@ -82,6 +82,20 @@
 
     installPhase = ''
       runHook preInstall
+      directories=( $(shopt -s nullglob; echo ${installLocation}) )
+
+      if [ ''${#directories[@]} -eq 0 ]; then
+        echo "Error: The built gradle application could not be found at ${installLocation}.
+        Most likely the option 'installLocation' is not set correctly.
+        The default value for 'installLocation' only works when the application plugin is applied on the root project itself.
+        If you applied it on a sub-project, adapt 'installLocation' accordingly, for example 'installLocation = \"path/to/sub-project/build/install/*/\"'." 1>&2;
+        exit 1
+      elif [ ''${#directories[@]} -gt 1 ]; then
+          echo "Error: The built gradle application could not be found at ${installLocation} because there are multiple matching directories (''${directories[@]})
+          Please adapt 'installLocation' to be more specific, for example by removing any wildcards." 1>&2;
+          exit 1
+      fi
+
       pushd ${installLocation}
 
       mkdir -p $out/lib/
