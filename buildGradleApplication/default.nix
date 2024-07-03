@@ -5,12 +5,7 @@
   writeShellScript,
   makeWrapper,
   mkM2Repository,
-}:
-let
-  cleanAttrs = lib.flip removeAttrs [
-    "pname" "version" "src" "meta" "jdk" "gradle" "buildInputs" "nativeBuildInputs" "dependencyFilter" "repositories" "verificationFile" "buildTask" "installLocation" "dontWrapGApps"
-  ];
-in {
+}: {
   pname,
   version,
   src,
@@ -24,9 +19,7 @@ in {
   verificationFile ? "gradle/verification-metadata.xml",
   buildTask ? ":installDist",
   installLocation ? "build/install/*/",
-  ...
-} @ attrs:
-let
+}: let
   m2Repository = mkM2Repository {
     inherit pname version src dependencyFilter repositories verificationFile;
   };
@@ -65,7 +58,7 @@ let
     done
   '';
 
-  package = stdenvNoCC.mkDerivation ((cleanAttrs attrs) // {
+  package = stdenvNoCC.mkDerivation {
     inherit pname version src meta buildInputs;
     nativeBuildInputs = [gradle jdk makeWrapper] ++ nativeBuildInputs;
     buildPhase = ''
@@ -116,6 +109,6 @@ let
         --set-default JAVA_HOME "${jdk.home}" \
         ''${gappsWrapperArgs[@]}
     '';
-  });
+  };
 in
   package
