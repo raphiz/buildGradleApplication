@@ -19,7 +19,7 @@
 
 - `buildGradleApplication` is _not_ a general purpose solution for building arbitrary Gradle projects. If you want to do that, check out [gradle2nix](https://github.com/tadfisher/gradle2nix) instead.
 - Do not try to replicate Gradle's behaviour, e.g. to construct a runtime classpath. Instead, use the Gradle built-ins to produce these results.
-- Android. But if you have experience in Android, talk to me! It might not be that hard to support android instead (by breaking/adopting Rule #4).
+- Android. But if you have experience in Android, talk to me! It might not be that hard to support android instead (by breaking/adopting Rule #5).
 
 ## Rules
 
@@ -122,7 +122,7 @@ buildGradleApplication {
 }
 ```
 
-### Rule #4: Using the `application` Plugin
+### Rule #5: Using the `application` Plugin
 
 Currently, the focus of this tool is to package Gradle applications. In order to launch a java application, we need both an main class as an entry point and a runtime classpath. The latter must contain both third-party dependencies fetched from a maven repository and project local libraries generated from other projects within the same build.
 
@@ -143,7 +143,7 @@ application {
 
 Checkout the [`application` plugin documentation](https://docs.gradle.org/current/userguide/application_plugin.html) for any further details.
 
-### Rule #5: Tell gradle to be more reproducible
+### Rule #6: Tell gradle to be more reproducible
 
 Gradle has [a few switches to make builds more reproducible](https://docs.gradle.org/current/userguide/working_with_files.html#sec:reproducible_archives). These must be set to ensure proper reproducibility of the genereated `.jar` files.
 
