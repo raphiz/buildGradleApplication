@@ -1,4 +1,5 @@
 {
+  lib,
   python3,
   git,
   writeShellApplication,
@@ -6,6 +7,7 @@
   updateAction ? "dependencies",
   cmd ? "gradle --refresh-dependencies --write-verification-metadata sha256 ${updateAction}",
   verificationFile ? "gradle/verification-metadata.xml",
+  whitelist ? [],
 }:
 writeShellApplication {
   name = "update-verification-metadata";
@@ -19,7 +21,7 @@ writeShellApplication {
       exit 1
     fi
     echo "Removing all component entries from $verificationFile ..."
-    python ${./update-verification-metadata.py} "$verificationFile"
+    python ${./update-verification-metadata.py} "$verificationFile" ${builtins.toString (builtins.map lib.escapeShellArg whitelist)}
     echo "Regenerating gradle verification data ..."
     ${cmd}
   '';
