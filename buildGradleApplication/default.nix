@@ -15,13 +15,14 @@
   buildInputs ? [],
   nativeBuildInputs ? [],
   dependencyFilter ? depSpec: true,
+  privateRepository ? null,
   repositories ? ["https://plugins.gradle.org/m2/" "https://repo1.maven.org/maven2/"],
   verificationFile ? "gradle/verification-metadata.xml",
   buildTask ? ":installDist",
   installLocation ? "build/install/*/",
 }: let
   m2Repository = mkM2Repository {
-    inherit pname version src dependencyFilter repositories verificationFile;
+    inherit pname version src dependencyFilter privateRepository repositories verificationFile;
   };
 
   # Prepare a script that will replace that jars with references into the NIX store.
