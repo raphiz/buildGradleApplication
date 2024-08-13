@@ -154,6 +154,28 @@ tasks.withType<AbstractArchiveTask>().configureEach {
 }
 ```
 
+### Rule #7: Making sure dependency resolution is reproducible
+
+Gradle's dependency resolution _can_ be unstable in the following cases:
+
+- [dynamic dependency versions](https://docs.gradle.org/current/userguide/rich_versions.html) are used (version ranges, latest.release, 1.+, ...)
+- Changing versions (SNAPSHOTs, fixed version with changing contents, ...)
+
+The recommended way to use `buildGradleApplication` is to prevent the use of non reproducible dependencies:
+
+```kotlin
+configurations.all {
+    resolutionStrategy {
+        failOnNonReproducibleResolution()
+    }
+}
+
+```
+
+If you _must_ use these features (please, don't!), use [dependency locking](https://docs.gradle.org/current/userguide/dependency_locking.html#dependency-locking).
+
+For more details, see the ["Making sure resolution is reproducible" section in the Gradle Docs](https://docs.gradle.org/current/userguide/resolution_strategy_tuning.html#reproducible-resolution).
+
 ## Installation (via flakes)
 
 ```nix
