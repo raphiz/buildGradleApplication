@@ -8,6 +8,7 @@
   version,
   src,
   dependencyFilter ? depSpec: true,
+  privateRepository ? null,
   repositories ? ["https://plugins.gradle.org/m2/" "https://repo1.maven.org/maven2/"],
   verificationFile ? "gradle/verification-metadata.xml",
 }: let
@@ -20,13 +21,16 @@
     # Read all build and runtime dependencies from the verification-metadata XML
     builtins.fromJSON (builtins.readFile (
       runCommandNoCC "depSpecs" {buildInputs = [python3];}
-      "python ${./parse.py} ${filteredSrc}/${verificationFile} ${builtins.toString (builtins.map lib.escapeShellArg repositories)}> $out"
+      "python ${./parse.py} -f ${filteredSrc}/${verificationFile} -r ${builtins.toString (builtins.map lib.escapeShellArg repositories)}"
+        + lib.strings.optionalString (privateRepository != null) " -p ${lib.escapeShellArg privateRepository}"
+        + " > $out"
     ))
   );
-  mkDep = depSpec: {
+  mkDep = { privateUrl ? null, ... }@depSpec: {
     inherit (depSpec) urls path name hash component;
     jar = fetchArtifact {
       inherit (depSpec) urls hash name;
+      inherit privateUrl;
     };
   };
   dependencies = builtins.map (depSpec: mkDep depSpec) depSpecs;
