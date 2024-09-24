@@ -148,11 +148,16 @@ Checkout the [`application` plugin documentation](https://docs.gradle.org/curren
 Gradle has [a few switches to make builds more reproducible](https://docs.gradle.org/current/userguide/working_with_files.html#sec:reproducible_archives). These must be set to ensure proper reproducibility of the genereated `.jar` files.
 
 ```kotlin
+// Important: This configuration is probably not complete for your project! 
 tasks.withType<AbstractArchiveTask>().configureEach {
     isPreserveFileTimestamps = false
     isReproducibleFileOrder = true
+    dirPermissions { unix("755") }
+    filePermissions { unix("644") }
 }
 ```
+
+Alternatively, you might use [the Reproducible Builds plugin](https://github.com/gradlex-org/reproducible-builds/) to achive the same.
 
 ### Rule #7: Making sure dependency resolution is reproducible
 
