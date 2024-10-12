@@ -233,6 +233,27 @@ For further examples, checkout the [example repository](https://github.com/raphi
 
 All available parameters of `buildGradleApplication` are documented in the [source code](https://github.com/raphiz/buildGradleApplication/blob/main/buildGradleApplication/default.nix)
 
+### Other useful tools
+
+#### `gradleFromWrapper`
+
+The [recommended way to execute any Gradle build is with the help of the Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html).
+It's main motivations are to have a standardised version per project and to make it easy to deploy in different execution environments.
+When using Nix, these motivations are largely obsolete.
+
+There may still be reasons to use the wrapper even when using Nix.
+In these cases, it's inconvenient to keep both versions (nix and wrapper) in sync.
+
+To simplify this case, you can use the url and checksum from the `gradle-wrapper.properties` file to build exactly the same gradle package with the `gradleFromWrapper` builder function:
+
+```nix
+gradle = pkgs.gradleFromWrapper {
+    wrapperPropertiesPath = ./gradle/wrapper/gradle-wrapper.properties;
+};
+```
+
+NOTE: This utility _only_ works with nixpkgs 24.11 and above, since it is based on changes made to `gradleGen` in [this PR](https://github.com/NixOS/nixpkgs/pull/277721).
+
 ## Additional Information
 
 ### Maven Repositories are not Mirrors
