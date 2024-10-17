@@ -58,6 +58,26 @@ Here is an example command to let Gradle add all dependency artifacts to your `v
 gradle --refresh-dependencies --write-verification-metadata sha256 --write-locks dependencies
 ```
 
+Note that in Gradle projects where dependencies are specified dynamically inside a Gradle task, you need to run the same command above, but replace `dependencies` with the specific Gradle task where dependencies are dynamically specified. 
+For example, imagine that you have a Gradle project with a sub-module written in Groovy, where some additional dependencies are added inside the `compileGroovy` task. If you would try to build your project, you will see a similar error like this:
+
+```
+Execution failed for task ':my-submodule:compileGroovy'.
+> Could not resolve all files for configuration ':my-submodule:detachedConfiguration1'.
+   > Could not find org.apache.groovy:groovy-astbuilder:4.0.21.
+     Required by:
+         project :my-submodule
+         project :my-submodule > org.apache.groovy:groovy:4.0.21 > org.apache.groovy:groovy-bom:4.0.21
+```
+
+In order to solve those problems, you need to tell Gradle to execute the task `compileGroovy` instead of the `dependencies` task, along with the flags mentioned above. Like this: 
+
+```bash
+gradle --refresh-dependencies --write-verification-metadata sha256 --write-locks compileGroovy
+```
+
+Now you will notice that the `verification-metadata.xml` file will contain those extra missing dependencies that you got an error for earlier. 
+
 Gradle not remove any artefacts from the `verification-metadata.xml` even if they are not used anymore. This can lead to . The `updateVerificationMetadata` package from this flake can be used to re-generate the file while keeping the `<configuration>` section. You must ensure that the Gradle version and JDK version align.
 
 ```bash
