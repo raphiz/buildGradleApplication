@@ -25,11 +25,47 @@
 
 ### Rule #1: Requires Checksum Verification (`verification-metadata.xml`)
 
-Using Gradles built-in Mechanism for [dependency verification](https://docs.gradle.org/current/userguide/dependency_verification.html) is not only a security best practice, but also allows `buildGradleApplication` to fetch an fixed version (as a [fixed-output derivations](https://nixos.org/manual/nix/stable/language/advanced-attributes.html#adv-attr-outputHash)) of a dependency and its metadata.
+Using Gradle's built-in Mechanism for [dependency verification](https://docs.gradle.org/current/userguide/dependency_verification.html) is not only a security best practice, but also allows `buildGradleApplication` to fetch an fixed version (as a [fixed-output derivations](https://nixos.org/manual/nix/stable/language/advanced-attributes.html#adv-attr-outputHash)) of a dependency and its metadata.
 
 While it should be straight forward to generate a `verification-metadata.xml` file by following the [documentation](https://docs.gradle.org/current/userguide/dependency_verification.html), take extra care that Gradle version and JDK version align! This should not be a problem when using Nix for your development environment.
 
-Once such a `verification-metadata.xml` file exists, Gradle will refuse to download anything not mentioned in it. This can lead to issues when using an IDE such as [IntelliJ IDEA which might attempt to download javadoc and source artifacts](https://youtrack.jetbrains.com/issue/IDEA-258328/Dependency-verification-failed-Checksums-of-downloaded-sources-not-included-in-verification-metadata.xml) not listed in the `verification-metadata.xml` file. You can automatically trust all javadocs/sources as follows:
+Here is an example command to let Gradle add all dependency artifacts to your `verification-metadata.xml`:
+
+```bash
+gradle --refresh-dependencies --write-verification-metadata sha256 --write-locks dependencies
+```
+
+Gradle does not remove any artefacts from the `verification-metadata.xml` even if they are not used anymore. This can lead to a unnecessary large  file. The `updateVerificationMetadata` package from this flake can be used to re-generate the file while keeping the `<configuration>` section. Again: You must ensure that the Gradle version and JDK version align.
+
+```bash
+update-verification-metadata
+```
+
+**Tip**: [Renovate can and will append updated dependencies to this file](https://docs.renovatebot.com/modules/manager/gradle/#dependency-verification) - Yay 🎉
+
+#### Dependency Verification and IntelliJ IDEA
+
+Gradle's `verification-metadata.xml` file enforces that only explicitly listed artifacts are downloaded during builds. However, this can lead to issues when using IDEs like IntelliJ IDEA, [which will download additional artifacts (Javadoc, source files and more) that are not included in the verification metadata](https://youtrack.jetbrains.com/issue/IDEA-258328).
+
+To handle this issue, you have two options. The one you choose depends on how important dependency verification is to you compared to the effort required to maintain it:
+
+#### Option 1: Disable Dependency Verification for Development (low effort)
+
+Simplify the development process by disabling Gradle's dependency verification. Add the following line to your `gradle.properties` file:
+
+```
+org.gradle.dependency.verification=off
+```
+
+**Note**: You still need the `verification-metadata.xml` file to download the required artifacts and build the Nix package. However, disabling dependency verification prevents you from having to deal with these quirks during development.
+
+#### 2. Manually Add Missing Dependencies (more secure when done properly)
+
+Manually identify and add additional dependencies required by IntelliJ IDEA into the verification-metadata.xml file. I use a [script to simplify that](https://gist.github.com/raphiz/3e03f54cf2b81047e8cdcdd264b56010).
+
+##### 2b. Automatically Trust Javadoc and Source Artifacts
+
+Update your `verification-metadata.xml` file to automatically trust Javadoc and source files, allowing IntelliJ IDEA to fetch them without verification errors. Here's an example configuration:
 
 ```xml
 <!-- gradle/verification-metadata.xml -->
@@ -47,24 +83,10 @@ Once such a `verification-metadata.xml` file exists, Gradle will refuse to downl
       </trusted-artifacts>
    </configuration>
    <components>
-       <!-- ... -->
+       <!-- Define other dependencies here -->
    </components>
 </verification-metadata>
 ```
-
-Here is an example command to let Gradle add all dependency artifacts to your `verification-metadata.xml`:
-
-```bash
-gradle --refresh-dependencies --write-verification-metadata sha256 --write-locks dependencies
-```
-
-Gradle not remove any artefacts from the `verification-metadata.xml` even if they are not used anymore. This can lead to . The `updateVerificationMetadata` package from this flake can be used to re-generate the file while keeping the `<configuration>` section. You must ensure that the Gradle version and JDK version align.
-
-```bash
-update-verification-metadata
-```
-
-Note: [Renovate can and will re-generate this file](https://docs.renovatebot.com/modules/manager/gradle/#dependency-verification) when updating dependencies - Yay 🎉
 
 ### Rule #2: Maven Repositories Only
 
