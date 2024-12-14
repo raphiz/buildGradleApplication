@@ -12,7 +12,7 @@ tree = ET.parse(verification_file)
 
 root = tree.getroot()
 components = root.find('components', namespaces)
-if (components):
+if (components is not None):
   for component in list(components):
         group = component.get('group')
         name = component.get('name')
