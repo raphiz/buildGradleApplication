@@ -21,6 +21,58 @@
 - Do not try to replicate Gradle's behaviour, e.g. to construct a runtime classpath. Instead, use the Gradle built-ins to produce these results.
 - Android. But if you have experience in Android, talk to me! It might not be that hard to support android instead (by breaking/adopting Rule #5).
 
+## Installation (via flakes)
+
+```nix
+{
+  inputs = {
+    build-gradle-application.url = "github:raphiz/buildGradleApplication";
+    # ...
+  };
+
+  # ...
+  outputs = {
+    nixpkgs,
+    build-gradle-application,
+    ...
+    }: {
+        # ...
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [build-gradle-application.overlays.default];
+        };
+        # ...
+    };
+}
+
+```
+
+## Usage
+
+The usage of `buildGradleApplication` should be straight forward once your build follows the outlined rules below. Here is a very minimal example:
+
+```nix
+# package.nix
+{
+  lib,
+  version,
+  buildGradleApplication,
+}:
+buildGradleApplication {
+  pname = "hello-world";
+  version = version;
+  src = ./.;
+  meta = with lib; {
+    description = "Hello World Application";
+  };
+}
+
+```
+
+For further examples, checkout the [example repository](https://github.com/raphiz/buildGradleApplication-examples/)
+
+All available parameters of `buildGradleApplication` are documented in the [source code](https://github.com/raphiz/buildGradleApplication/blob/main/buildGradleApplication/default.nix)
+
 ## Rules
 
 ### Rule #1: Requires Checksum Verification (`verification-metadata.xml`)
@@ -202,58 +254,6 @@ configurations.all {
 If you _must_ use these features (please, don't!), use [dependency locking](https://docs.gradle.org/current/userguide/dependency_locking.html#dependency-locking).
 
 For more details, see the ["Making sure resolution is reproducible" section in the Gradle Docs](https://docs.gradle.org/current/userguide/resolution_strategy_tuning.html#reproducible-resolution).
-
-## Installation (via flakes)
-
-```nix
-{
-  inputs = {
-    build-gradle-application.url = "github:raphiz/buildGradleApplication";
-    # ...
-  };
-
-  # ...
-  outputs = {
-    nixpkgs,
-    build-gradle-application,
-    ...
-    }: {
-        # ...
-        pkgs = import nixpkgs {
-          inherit system;
-          overlays = [build-gradle-application.overlays.default];
-        };
-        # ...
-    };
-}
-
-```
-
-## Usage
-
-The usage of `buildGradleApplication` should be straight forward once your build follows the outlined rules above. Here is a very minimal example:
-
-```nix
-# package.nix
-{
-  lib,
-  version,
-  buildGradleApplication,
-}:
-buildGradleApplication {
-  pname = "hello-world";
-  version = version;
-  src = ./.;
-  meta = with lib; {
-    description = "Hello World Application";
-  };
-}
-
-```
-
-For further examples, checkout the [example repository](https://github.com/raphiz/buildGradleApplication-examples/)
-
-All available parameters of `buildGradleApplication` are documented in the [source code](https://github.com/raphiz/buildGradleApplication/blob/main/buildGradleApplication/default.nix)
 
 ### Other useful tools
 
