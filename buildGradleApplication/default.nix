@@ -14,7 +14,19 @@
   gradle ? pkgs.gradle,
   buildInputs ? [],
   nativeBuildInputs ? [],
-  dependencyFilter ? depSpec: true,
+  dependencyFilter ? depSpec: let
+    # Lots of libraries have references to metadata jars that are not present on maven central, for example:
+    # - kasechange-metadata-1.4.1.jar (net.pearx.kasechange:kasechange)
+    # - kotlin-result-metadata-2.0.0.jar (com.michael-bull.kotlin-result:kotlin-result)
+    # - kotlinx-serialization-core-metadata-1.7.0.jar (org.jetbrains.kotlinx:kotlinx-serialization-core)
+    # These will make the nix build fail because we cannot fetch them. They are usually not needed for the build, so it's relatively safe to ignore them by default.
+    # However, it MIGHT be the case that some -metadata.jars ARE actually required but I have not yet found one. If you do, please open an issue!
+    isUnpublishedMetadataJar =
+      depSpec.name == "${depSpec.component.name}-metadata-${depSpec.component.version}.jar";
+  in
+    if isUnpublishedMetadataJar
+    then builtins.trace "Ignoring potentially unpublished metadata jar: ${depSpec.name}" false
+    else true,
   repositories ? ["https://plugins.gradle.org/m2/" "https://repo1.maven.org/maven2/"],
   verificationFile ? "gradle/verification-metadata.xml",
   buildTask ? ":installDist",
