@@ -1,6 +1,7 @@
 {
   lib,
-  runCommandNoCC,
+  stdenv,
+  runCommand,
   python3,
   fetchArtifact,
 }: {
@@ -16,13 +17,28 @@
     fileset = lib.path.append src verificationFile;
   };
 
+  # Read all build and runtime dependencies from the verification-metadata XML
+  depSpecsDrv = stdenv.mkDerivation {
+    name = "depSpecs";
+    src = ./.;
+
+    buildPhase = ''
+      ${python3}/bin/python3 ${./parse.py} \
+              ${filteredSrc}/${verificationFile} \
+              ${builtins.toString (builtins.map lib.escapeShellArg repositories)} > depSpecs.json
+    '';
+
+    installPhase = ''
+      cp depSpecs.json $out
+    '';
+
+    meta = {};
+  };
+
   depSpecs = builtins.filter dependencyFilter (
-    # Read all build and runtime dependencies from the verification-metadata XML
-    builtins.fromJSON (builtins.readFile (
-      runCommandNoCC "depSpecs" {buildInputs = [python3];}
-      "python ${./parse.py} ${filteredSrc}/${verificationFile} ${builtins.toString (builtins.map lib.escapeShellArg repositories)}> $out"
-    ))
+    builtins.fromJSON (builtins.readFile depSpecsDrv)
   );
+  
   mkDep = depSpec: {
     inherit (depSpec) urls path name hash component;
     jar = fetchArtifact {
@@ -33,7 +49,7 @@
 
   # write a dedicated script for the m2 repository creation. Otherwise, the m2Repository derivation might crash with 'Argument list too long'
   m2Repository =
-    runCommandNoCC "${pname}-${version}-m2-repository"
+    runCommand "${pname}-${version}-m2-repository"
     {src = filteredSrc;}
     (
       "mkdir $out"
