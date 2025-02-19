@@ -19,7 +19,6 @@
             mkM2Repository = prev.callPackage ./buildGradleApplication/mkM2Repository.nix {};
             buildGradleApplication = prev.callPackage ./buildGradleApplication/default.nix {};
             updateVerificationMetadata = prev.callPackage ./update-verification-metadata/default.nix {};
-
             gradleFromWrapper = import ./gradleFromWrapper final;
           };
         };
@@ -32,12 +31,22 @@
         system,
         ...
       }: let
-        pkgs = import nixpkgs {
-          inherit system;
-          overlays = [self.overlays.default];
-        };
+        pkgs = nixpkgs.legacyPackages.${system};
       in {
         formatter = pkgs.alejandra;
+        legacyPackages = let
+          fetchArtifact = pkgs.callPackage ./fetchArtefact/default.nix {};
+          mkM2Repository = pkgs.callPackage ./buildGradleApplication/mkM2Repository.nix {
+            inherit fetchArtifact;
+          };
+          buildGradleApplication = pkgs.callPackage ./buildGradleApplication/default.nix {
+            inherit mkM2Repository;
+          };
+          updateVerificationMetadata = pkgs.callPackage ./update-verification-metadata/default.nix {};
+          gradleFromWrapper = import ./gradleFromWrapper pkgs;
+        in {
+          inherit fetchArtifact mkM2Repository buildGradleApplication updateVerificationMetadata gradleFromWrapper;
+        };
       };
     };
 }
