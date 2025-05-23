@@ -24,9 +24,14 @@
     ))
   );
   mkDep = depSpec: {
-    inherit (depSpec) urls path name hash component;
+    inherit (depSpec) url_prefixes path name hash component;
     jar = fetchArtifact {
-      inherit (depSpec) urls hash name;
+      inherit (depSpec) url_prefixes hash name hash_algo hash_value path;
+      module = if (depSpec.module_name == null) then null else fetchArtifact {
+        inherit (depSpec) url_prefixes hash_algo hash_value path;
+        hash = depSpec.module_hash;
+        name = depSpec.module_name;
+      };
     };
   };
   dependencies = builtins.map (depSpec: mkDep depSpec) depSpecs;

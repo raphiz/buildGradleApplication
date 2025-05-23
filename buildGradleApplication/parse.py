@@ -15,6 +15,8 @@ class Artifact:
     name: str
     hash: object
     component: object
+    module_name: str
+    module_hash: str
 
 @dataclass
 class Hash:
@@ -32,15 +34,19 @@ def main():
     for artifact in artifacts:
         path = f"{artifact.component.group.replace('.', '/')}/{artifact.component.name}/{artifact.component.version}"
         output = {
-            "urls": [f"{maven_repo}/{path}/{artifact.name}" for maven_repo in maven_repos],
+            "url_prefixes": [f"{maven_repo}/{path}" for maven_repo in maven_repos],
             "path": path,
             "name": artifact.name,
+            "module_name": artifact.module_name,
+            "module_hash": artifact.module_hash,
             "component": {
                 "group": artifact.component.group,
                 "name": artifact.component.name,
                 "version": artifact.component.version,
             },
-            "hash": toSri(artifact.hash.algo, artifact.hash.value)
+            "hash": toSri(artifact.hash.algo, artifact.hash.value),
+            "hash_algo": artifact.hash.algo,
+            "hash_value": artifact.hash.value,
         }
         outputs.append(output)
     print(json.dumps(outputs))
@@ -65,6 +71,8 @@ def parse(xml_file):
         name = component_elem.get("name")
         version = component_elem.get("version")
         component_obj = Component(group=group, name=name, version=version)
+        module_name = None
+        module_hash = None
 
         for artifact_elem in component_elem.findall("default:artifact", namespaces):
             artifact_name = artifact_elem.get("name")
@@ -75,8 +83,12 @@ def parse(xml_file):
                     value = elem.get("value")
                     hash_obj = Hash(algo=algo, value=value)
 
-            artifact_obj = Artifact(name=artifact_name, hash=hash_obj, component=component_obj)
+            artifact_obj = Artifact(name=artifact_name, hash=hash_obj, component=component_obj, module_name=module_name, module_hash=module_hash)
             artifacts.append(artifact_obj)
+
+            if artifact_name.endswith(".module"):
+                module_name = artifact_name
+                module_hash = toSri(hash_obj.algo, hash_obj.value)
 
     return artifacts
 
