@@ -72,6 +72,9 @@
 
   package = stdenvNoCC.mkDerivation {
     inherit pname version src meta buildInputs;
+
+    passthru.jdk = jdk;
+
     nativeBuildInputs = [gradle jdk makeWrapper] ++ nativeBuildInputs;
     buildPhase = ''
       runHook preBuild
