@@ -270,9 +270,7 @@ In these cases, it's inconvenient to keep both versions (nix and wrapper) in syn
 To simplify this case, you can use the url and checksum from the `gradle-wrapper.properties` file to build exactly the same gradle package with the `gradleFromWrapper` builder function:
 
 ```nix
-gradle = pkgs.gradleFromWrapper {
-    wrapperPropertiesPath = ./gradle/wrapper/gradle-wrapper.properties;
-};
+gradle = pkgs.gradleFromWrapper ./gradle/wrapper/gradle-wrapper.properties;
 ```
 
 NOTE: This utility _only_ works with nixpkgs 24.11 and above, since it is based on changes made to `gradleGen` in [this PR](https://github.com/NixOS/nixpkgs/pull/277721).

@@ -1,34 +1,22 @@
-pkgs: {
-  wrapperPropertiesPath,
-  defaultJava ? pkgs.jdk,
-}:
-pkgs.callPackage (pkgs.gradleGen (let
+pkgs: wrapperPropertiesPath: let
   wrapperProperties = builtins.readFile wrapperPropertiesPath;
   lines = pkgs.lib.strings.splitString "\n" wrapperProperties;
-in {
-  inherit defaultJava;
 
   # Extract version from gradle-wrapper.properties
-  version = let
-    distributionUrlLine = builtins.head (builtins.filter (
-        line:
-          builtins.match "distributionUrl=.*" line != null
-      )
-      lines);
-    versionMatch = builtins.match ".*/gradle-([^-]*)-bin.zip" distributionUrlLine;
-    versionValue = builtins.elemAt versionMatch 0;
-  in
-    versionValue;
+  distributionUrlMatches = builtins.filter (line: builtins.match "distributionUrl=(.*)" line != null) lines;
+  rawDistributionUrl = builtins.head (builtins.match "distributionUrl=(.*)" (builtins.head distributionUrlMatches));
+  distributionUrl = builtins.replaceStrings ["\\:"] [":"] rawDistributionUrl;
+  version = builtins.head (builtins.match ".*/gradle-([^-]*)-(bin|all).zip" distributionUrl);
 
   # Extract hash from gradle-wrapper.properties
-  hash = let
-    sha256SumLine = builtins.head (builtins.filter (
-        line:
-          builtins.match "distributionSha256Sum=.*" line != null
-      )
-      lines);
-    sha256Hex = builtins.elemAt (builtins.match "distributionSha256Sum=(.*)" sha256SumLine) 0;
-    formattedHash = "sha256:" + sha256Hex;
-  in
-    formattedHash;
-})) {}
+  sha256SumLine = builtins.head (builtins.filter (line: builtins.match "distributionSha256Sum=.*" line != null) lines);
+  sha256Hex = builtins.head (builtins.match "distributionSha256Sum=(.*)" sha256SumLine);
+  hash = "sha256:" + sha256Hex;
+in
+  pkgs.gradle.unwrapped.overrideAttrs (previousAttrs: {
+    inherit version;
+    src = pkgs.fetchurl {
+      url = distributionUrl;
+      inherit hash;
+    };
+  })
