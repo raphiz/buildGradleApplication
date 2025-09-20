@@ -75,7 +75,7 @@
     inherit pname version src meta buildInputs;
 
     passthru = {
-      inherit jdk updateVerificationMetadata;
+      inherit jdk gradle updateVerificationMetadata;
     };
 
     nativeBuildInputs = [gradle jdk makeWrapper] ++ nativeBuildInputs;
