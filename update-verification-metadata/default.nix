@@ -30,7 +30,7 @@ writeShellApplication {
 
 
     echo "Locating included builds"
-    includedBuilds=$(gradle -q --no-configuration-cache --init-script ${./listIncludedBuildsRelative.init.gradle.kts} listIncludedBuilds)
+    includedBuilds=$(gradle -q -Dorg.gradle.unsafe.isolated-projects=false --no-configuration-cache --init-script ${./listIncludedBuildsRelative.init.gradle.kts} listIncludedBuilds)
     for build in $includedBuilds; do
       pushd "$build" > /dev/null
       update_metadata
