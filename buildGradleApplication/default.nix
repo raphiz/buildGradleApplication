@@ -5,6 +5,7 @@
   writeShellScript,
   makeWrapper,
   mkM2Repository,
+  updateVerificationMetadata,
 }: {
   pname,
   version,
@@ -73,7 +74,9 @@
   package = stdenvNoCC.mkDerivation {
     inherit pname version src meta buildInputs;
 
-    passthru.jdk = jdk;
+    passthru = {
+      inherit jdk updateVerificationMetadata;
+    };
 
     nativeBuildInputs = [gradle jdk makeWrapper] ++ nativeBuildInputs;
     buildPhase = ''
