@@ -11,6 +11,7 @@
   version,
   src,
   meta,
+  env ? {},
   jdk ? pkgs.jdk,
   gradle ? pkgs.gradle,
   buildInputs ? [],
@@ -72,7 +73,7 @@
   '';
 
   package = stdenvNoCC.mkDerivation {
-    inherit pname version src meta buildInputs;
+    inherit pname version src meta buildInputs env;
 
     passthru = {
       inherit jdk gradle updateVerificationMetadata;
