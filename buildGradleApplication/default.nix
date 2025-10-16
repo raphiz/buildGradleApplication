@@ -73,7 +73,14 @@
   '';
 
   package = stdenvNoCC.mkDerivation {
-    inherit pname version src meta buildInputs env;
+    inherit pname version src buildInputs env;
+    meta =
+      {
+        # set default for meta.mainProgram here to gain compatibility with:
+        # `lib.getExe`, `nix run`, `nix bundle`, etc.
+        mainProgram = pname;
+      }
+      // meta;
 
     passthru = {
       inherit jdk gradle updateVerificationMetadata;
