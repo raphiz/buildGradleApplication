@@ -10,7 +10,7 @@
   pname,
   version,
   src,
-  meta,
+  meta ? {},
   env ? {},
   jdk ? pkgs.jdk,
   gradle ? pkgs.gradle,
