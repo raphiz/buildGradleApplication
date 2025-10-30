@@ -1,6 +1,6 @@
 {
   lib,
-  runCommandNoCC,
+  runCommand,
   python3,
   fetchArtifact,
 }: {
@@ -19,7 +19,7 @@
   depSpecs = builtins.filter dependencyFilter (
     # Read all build and runtime dependencies from the verification-metadata XML
     builtins.fromJSON (builtins.readFile (
-      runCommandNoCC "depSpecs" {buildInputs = [python3];}
+      runCommand "depSpecs" {buildInputs = [python3];}
       "python ${./parse.py} ${filteredSrc}/${verificationFile} ${builtins.toString (builtins.map lib.escapeShellArg repositories)}> $out"
     ))
   );
@@ -33,7 +33,7 @@
 
   # write a dedicated script for the m2 repository creation. Otherwise, the m2Repository derivation might crash with 'Argument list too long'
   m2Repository =
-    runCommandNoCC "${pname}-${version}-m2-repository"
+    runCommand "${pname}-${version}-m2-repository"
     {src = filteredSrc;}
     (
       "mkdir $out"
