@@ -34,7 +34,7 @@ hash="${hash:?}"
 
 url_suffix=$name
 if [[ -n $module ]]; then
-  url_suffix="$(< $module $jq -r '.variants | map(.files) | flatten | map(select(.'$hash_algo' == "'$hash_value'"))[0].url')"
+  url_suffix="$(< $module $jq -r '.variants | map(.files) | flatten | map(select(.'$hash_algo' == "'$hash_value'")) | (. + [{ url: "'$name'"}])[0].url')"
 fi
 
 for url_prefix in $url_prefixes; do
