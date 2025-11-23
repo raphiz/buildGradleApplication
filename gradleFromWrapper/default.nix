@@ -1,5 +1,19 @@
-pkgs: wrapperPropertiesPath: let
-  wrapperProperties = builtins.readFile wrapperPropertiesPath;
+pkgs: args: let
+  inherit (pkgs) lib;
+  safeArgs =
+    if (lib.isString args || lib.isPath args)
+    then
+      lib.warn
+      "DEPRECATED: gradleFromWrapper now expects an attrset like gradleFromWrapper { wrapperPropertiesPath = ${args}; defaultJava = pkgs.jdk;}."
+      {
+        wrapperPropertiesPath = args;
+        defaultJava = pkgs.jdk;
+      }
+    else if builtins.isAttrs args
+    then args
+    else throw "Expected an attrset, path (deprecated) or string (deprecated), got: ${builtins.typeOf args}";
+
+  wrapperProperties = builtins.readFile safeArgs.wrapperPropertiesPath;
   lines = pkgs.lib.strings.splitString "\n" wrapperProperties;
 
   # Extract version from gradle-wrapper.properties
@@ -13,10 +27,12 @@ pkgs: wrapperPropertiesPath: let
   sha256Hex = builtins.head (builtins.match "distributionSha256Sum=(.*)" sha256SumLine);
   hash = "sha256:" + sha256Hex;
 in
-  pkgs.gradle.unwrapped.overrideAttrs (previousAttrs: {
-    inherit version;
+  (pkgs.gradle-packages.mkGradle {
+    inherit version hash;
+    inherit (safeArgs) defaultJava;
+  }).overrideAttrs {
     src = pkgs.fetchurl {
       url = distributionUrl;
       inherit hash;
     };
-  })
+  }
