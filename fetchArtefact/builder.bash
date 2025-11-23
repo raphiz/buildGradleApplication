@@ -29,16 +29,10 @@ check_hash() {
 # expected variables to be set:
 name="${name:?}"
 out="${out:?}"
-url_prefixes="${url_prefixes:?}"
+urls="${urls:?}"
 hash="${hash:?}"
 
-url_suffix=$name
-if [[ -n $module ]]; then
-  url_suffix="$(< $module $jq -r '.variants | map(.files) | flatten | map(select(.'$hash_algo' == "'$hash_value'")) | (. + [{ url: "'$name'"}])[0].url')"
-fi
-
-for url_prefix in $url_prefixes; do
-    url="$url_prefix/$url_suffix"
+for url in $urls; do
     echo "Downloading $name from $url"
 
     if "${curl[@]}" --retry 0 --connect-timeout "${NIX_CONNECT_TIMEOUT:-15}" \

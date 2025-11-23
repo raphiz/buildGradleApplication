@@ -23,15 +23,38 @@
       "python ${./parse.py} ${filteredSrc}/${verificationFile} ${builtins.toString (builtins.map lib.escapeShellArg repositories)}> $out"
     ))
   );
-  mkDep = depSpec: {
-    inherit (depSpec) url_prefixes path name hash component;
+  mkDep = depSpec: let
+    # Gradle module metadata may specify a different url suffix than the artifact name
+    urlSuffixFallback = depSpec.name;
+    urlSuffix =
+      if (depSpec.module == null)
+      then urlSuffixFallback
+      else let
+        module = fetchArtifact {
+          urls = lib.map (prefix: "${prefix}/${depSpec.module.name}") depSpec.url_prefixes;
+          inherit (depSpec.module) hash name;
+        };
+        moduleMetadata = builtins.fromJSON (builtins.readFile module);
+        variantFiles = lib.flatten (lib.map (variant: variant.files or []) (moduleMetadata.variants or []));
+        matchingVariantFiles =
+          builtins.filter (
+            file: (file.${depSpec.hash_algo} or null) == depSpec.hash_value && file.name == depSpec.name
+          )
+          variantFiles;
+        firstMatchingVariantFile = builtins.head matchingVariantFiles;
+      in
+        if matchingVariantFiles == []
+        then urlSuffixFallback
+        else if builtins.all (f: f.url == firstMatchingVariantFile.url) matchingVariantFiles
+        then firstMatchingVariantFile.url
+        else throw "Found multiple matching urls with name ${depSpec.name} and hash ${depSpec.hash} in ${module}: ${builtins.toString (lib.map (f: f.url) matchingVariantFiles)}";
+    urls = lib.map (prefix: "${prefix}/${urlSuffix}") depSpec.url_prefixes;
+  in {
+    inherit urls urlSuffix;
+    inherit (depSpec) path name hash component;
     jar = fetchArtifact {
-      inherit (depSpec) url_prefixes hash name hash_algo hash_value path;
-      module = if (depSpec.module_name == null) then null else fetchArtifact {
-        inherit (depSpec) url_prefixes hash_algo hash_value path;
-        hash = depSpec.module_hash;
-        name = depSpec.module_name;
-      };
+      inherit urls;
+      inherit (depSpec) hash name;
     };
   };
   dependencies = builtins.map (depSpec: mkDep depSpec) depSpecs;
@@ -42,6 +65,6 @@
     {src = filteredSrc;}
     (
       "mkdir $out"
-      + lib.concatMapStringsSep "\n" (dep: "mkdir -p $out/${dep.path}\nln -s ${builtins.toString dep.jar} $out/${dep.path}/${dep.name}") dependencies
+      + lib.concatMapStringsSep "\n" (dep: "mkdir -p $out/${dep.path}\nln -s ${builtins.toString dep.jar} $out/${dep.path}/${dep.urlSuffix}") dependencies
     );
 in {inherit dependencies m2Repository;}
