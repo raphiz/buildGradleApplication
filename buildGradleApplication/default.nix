@@ -83,7 +83,8 @@
       // meta;
 
     passthru = {
-      inherit jdk gradle updateVerificationMetadata;
+      inherit jdk gradle;
+      updateVerificationMetadata = updateVerificationMetadata.overrideAttrs {inherit gradle;};
     };
 
     nativeBuildInputs = [gradle jdk makeWrapper] ++ nativeBuildInputs;

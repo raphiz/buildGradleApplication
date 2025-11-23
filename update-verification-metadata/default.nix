@@ -4,7 +4,8 @@
   git,
   writeShellApplication,
   updateAction ? "dependencies",
-  cmd ? "gradle --refresh-dependencies --write-verification-metadata sha256 ${updateAction}",
+  gradle,
+  cmd ? "${lib.getExe gradle} --refresh-dependencies --write-verification-metadata sha256 ${updateAction}",
   verificationFile ? "gradle/verification-metadata.xml",
   whitelist ? [],
 }:
@@ -30,7 +31,7 @@ writeShellApplication {
 
 
     echo "Locating included builds"
-    includedBuilds=$(gradle -q -Dorg.gradle.unsafe.isolated-projects=false --no-configuration-cache --init-script ${./listIncludedBuildsRelative.init.gradle.kts} listIncludedBuilds)
+    includedBuilds=$(${lib.getExe gradle} -q -Dorg.gradle.unsafe.isolated-projects=false --no-configuration-cache --init-script ${./listIncludedBuildsRelative.init.gradle.kts} listIncludedBuilds)
     for build in $includedBuilds; do
       pushd "$build" > /dev/null
       update_metadata
