@@ -1,6 +1,7 @@
 {
   lib,
   jdk,
+  version ? "1.0.0",
   buildGradleApplication,
   gradleFromWrapper,
 }: let
@@ -10,9 +11,8 @@
   };
 in
   buildGradleApplication {
-    inherit gradle;
+    inherit gradle version jdk;
     pname = "hello-world";
-    version = "1.0.0";
     src = ./.;
     meta = with lib; {
       description = "Hello World Application";
