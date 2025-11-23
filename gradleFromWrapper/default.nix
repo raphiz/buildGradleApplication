@@ -18,12 +18,20 @@ pkgs: args: let
 
   # Extract version from gradle-wrapper.properties
   distributionUrlMatches = builtins.filter (line: builtins.match "distributionUrl=(.*)" line != null) lines;
-  rawDistributionUrl = builtins.head (builtins.match "distributionUrl=(.*)" (builtins.head distributionUrlMatches));
+  distributionUrlLine =
+    if distributionUrlMatches == []
+    then throw ''Expected to find a line  distributionUrl=... in ${safeArgs.wrapperPropertiesPath} but none was found.''
+    else builtins.head distributionUrlMatches;
+  rawDistributionUrl = builtins.head (builtins.match "distributionUrl=(.*)" distributionUrlLine);
   distributionUrl = builtins.replaceStrings ["\\:"] [":"] rawDistributionUrl;
   version = builtins.head (builtins.match ".*/gradle-([^-]*)-(bin|all).zip" distributionUrl);
 
   # Extract hash from gradle-wrapper.properties
-  sha256SumLine = builtins.head (builtins.filter (line: builtins.match "distributionSha256Sum=.*" line != null) lines);
+  distributionSha256SumLine = builtins.filter (line: builtins.match "distributionSha256Sum=.*" line != null) lines;
+  sha256SumLine =
+    if distributionSha256SumLine == []
+    then throw ''Expected to find a line  distributionSha256Sum=... in ${safeArgs.wrapperPropertiesPath} but none was found.''
+    else builtins.head distributionSha256SumLine;
   sha256Hex = builtins.head (builtins.match "distributionSha256Sum=(.*)" sha256SumLine);
   hash = "sha256:" + sha256Hex;
 in
