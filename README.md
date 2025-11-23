@@ -69,7 +69,7 @@ buildGradleApplication {
 
 ```
 
-For further examples, checkout the [example repository](https://github.com/raphiz/buildGradleApplication-examples/)
+For further examples, checkout the [examples directory](./examples)
 
 All available parameters of `buildGradleApplication` are documented in the [source code](https://github.com/raphiz/buildGradleApplication/blob/main/buildGradleApplication/default.nix)
 
