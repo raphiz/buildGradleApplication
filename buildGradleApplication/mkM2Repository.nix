@@ -42,7 +42,7 @@
       inherit (depSpec) urls hash name;
     };
   };
-  dependencies = builtins.map (depSpec: mkDep depSpec) depSpecs;
+  dependencies = builtins.map mkDep depSpecs;
 
   # write a dedicated script for the m2 repository creation. Otherwise, the m2Repository derivation might crash with 'Argument list too long'
   m2Repository =
