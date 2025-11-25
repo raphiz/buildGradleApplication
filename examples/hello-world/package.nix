@@ -13,7 +13,18 @@ in
   buildGradleApplication {
     inherit gradle version jdk;
     pname = "hello-world";
-    src = ./.;
+    src = lib.cleanSourceWith {
+      src = lib.cleanSource ./.;
+      filter = path: type: let
+        ignore = builtins.elem (baseNameOf path);
+      in
+        ! ignore [
+          "package.nix"
+          "gradlew.bat"
+          "gradlew"
+        ];
+    };
+
     meta = with lib; {
       description = "Hello World Application";
       longDescription = ''
