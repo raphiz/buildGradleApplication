@@ -16,6 +16,10 @@ version = System.getenv("APP_VERSION") ?: "dirty"
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
+
+    // Dependency with artifact that does not follow the maven default convention
+    // https://github.com/raphiz/buildGradleApplication/issues/30
+    implementation("com.github.ajalt.clikt:clikt:5.0.1")
     
     // implicitly requires kotlinx-serialization-core-metadata-x.y.z.jar which is not uploaded to m2
     // `kotlinx-serialization-core-metadata-x.y.z.jar` must hence be filtered from the verification-metadata.xml

@@ -15,6 +15,13 @@ class Artifact:
     name: str
     hash: object
     component: object
+    module: object
+
+@dataclass
+class Module:
+    name: str
+    hash: object
+
 
 @dataclass
 class Hash:
@@ -32,15 +39,23 @@ def main():
     for artifact in artifacts:
         path = f"{artifact.component.group.replace('.', '/')}/{artifact.component.name}/{artifact.component.version}"
         output = {
-            "urls": [f"{maven_repo}/{path}/{artifact.name}" for maven_repo in maven_repos],
+            "url_prefixes": [f"{maven_repo}/{path}" for maven_repo in maven_repos],
             "path": path,
             "name": artifact.name,
+            "module": {
+                "name": artifact.module.name,
+                "hash": toSri(artifact.module.hash.algo, artifact.module.hash.value),
+                "hash_algo": artifact.module.hash.algo,
+                "hash_value": artifact.module.hash.value,
+            } if artifact.module is not None else None,
             "component": {
                 "group": artifact.component.group,
                 "name": artifact.component.name,
                 "version": artifact.component.version,
             },
-            "hash": toSri(artifact.hash.algo, artifact.hash.value)
+            "hash": toSri(artifact.hash.algo, artifact.hash.value),
+            "hash_algo": artifact.hash.algo,
+            "hash_value": artifact.hash.value,
         }
         outputs.append(output)
     print(json.dumps(outputs))
@@ -66,6 +81,7 @@ def parse(xml_file):
         version = component_elem.get("version")
         component_obj = Component(group=group, name=name, version=version)
 
+        component_artifacts = []
         for artifact_elem in component_elem.findall("default:artifact", namespaces):
             artifact_name = artifact_elem.get("name")
             hash_obj=None
@@ -75,9 +91,22 @@ def parse(xml_file):
                     value = elem.get("value")
                     hash_obj = Hash(algo=algo, value=value)
 
-            artifact_obj = Artifact(name=artifact_name, hash=hash_obj, component=component_obj)
-            artifacts.append(artifact_obj)
+            artifact_obj = Artifact(name=artifact_name, hash=hash_obj, component=component_obj, module=None)
+            component_artifacts.append(artifact_obj)
 
+        # keep reference to Gradle module metadata if it exist
+        module_name = f"{name}-{version}.module"
+        module_artifact = next(
+            (artifact for artifact in component_artifacts if artifact.name == module_name),
+            None,
+        )
+        if module_artifact is not None:
+            module = Module(name=module_artifact.name, hash=module_artifact.hash)
+            for artifact in component_artifacts:
+                if artifact is not module_artifact:
+                    artifact.module = module
+
+        artifacts.extend(component_artifacts)
     return artifacts
 
 
