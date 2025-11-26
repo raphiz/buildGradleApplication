@@ -21,8 +21,7 @@ dependencies {
     // https://github.com/raphiz/buildGradleApplication/issues/30
     implementation("com.github.ajalt.clikt:clikt:5.0.1")
     
-    // implicitly requires kotlinx-serialization-core-metadata-x.y.z.jar which is not uploaded to m2
-    // `kotlinx-serialization-core-metadata-x.y.z.jar` must hence be filtered from the verification-metadata.xml
+    // implicitly requires kotlinx-serialization-core-metadata-x.y.z.jar which has multiple gradle variants (and hence URLs)
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.7.3")
 
     testImplementation(kotlin("test"))
