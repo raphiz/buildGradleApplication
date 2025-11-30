@@ -105,7 +105,7 @@ To handle this issue, you have two options. The one you choose depends on how im
 
 Simplify the development process by disabling Gradle's dependency verification. Add the following line to your `gradle.properties` file:
 
-```
+```properties
 org.gradle.dependency.verification=off
 ```
 
@@ -161,7 +161,7 @@ buildGradleApplication {
 
 Because Nix uses a sandbox which prevents internet access during build time, `buildGradleApplication` needs to pre fetch all required artifacts. These are then made available to the offline build using a local maven repository. The location of this repository depends on [it's contents](https://nixos.org/guides/nix-pills/nix-store-paths) and is provided to the Gradle build via the  `MAVEN_SOURCE_REPOSITORY` Environment Variable.
 
-It's a Gradle best practice to [centralize repositories declarations](https://docs.gradle.org/current/userguide/declaring_repositories.html#sub:centralized-repository-declaration). 
+It's a Gradle best practice to [centralize repositories declarations](https://docs.gradle.org/current/userguide/declaring_repositories.html#sub:centralized-repository-declaration).
 
 `buildGradleApplication` assumes that all repository declarations are located in your `settings.gradle(.kts)` files. It will then replace these declarations during build time with the location of the offline repository (using a [Gradle init script](./buildGradleApplication/init.gradle.kts))
 
@@ -256,9 +256,24 @@ If you _must_ use these features (please, don't!), use [dependency locking](http
 
 For more details, see the ["Making sure resolution is reproducible" section in the Gradle Docs](https://docs.gradle.org/current/userguide/resolution_strategy_tuning.html#reproducible-resolution).
 
-### Other useful tools
+## Additional Information
 
-#### `gradleFromWrapper`
+### Maven Repositories are not Mirrors
+
+Sadly, many Maven repositories contain the same artifacts but with different metadata. One such example is the Kotlin JVM Gradle Plugin ([Maven Central](https://repo1.maven.org/maven2/org/jetbrains/kotlin/jvm/org.jetbrains.kotlin.jvm.gradle.plugin/1.7.10/org.jetbrains.kotlin.jvm.gradle.plugin-1.7.10.pom) vs. [gradle plugin portal](https://plugins.gradle.org/m2/org/jetbrains/kotlin/jvm/org.jetbrains.kotlin.jvm.gradle.plugin/1.7.10/org.jetbrains.kotlin.jvm.gradle.plugin-1.7.10.pom)). To work around this, `buildGradleApplication` uses a special `fetchArtifact` builder instead of the classic [`fetchurl` fetchers](https://ryantm.github.io/nixpkgs/builders/fetchers/). `fetchArtifact` will try to download a given artifact with a given hash from all provided urls. If the checksum of the downloaded artifact differs from the expected one, it is quietly ignored and the next url is tried instead.
+
+### Very slow first build
+
+The first build with `buildGradleApplication` might be very slow. The reason for this is, that each maven artifact is a dedicated derivation and derivations are not built in parallel by default.
+You can speed up the first build by enabling concurrent builds, for example:
+
+```bash
+nix build -j 15
+```
+
+## Other useful tools
+
+### `gradleFromWrapper`
 
 The [recommended way to execute any Gradle build is with the help of the Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html).
 It's main motivations are to have a standardised version per project and to make it easy to deploy in different execution environments.
@@ -277,21 +292,6 @@ gradle = pkgs.gradleFromWrapper {
 ```
 
 NOTE: This utility _only_ works with nixpkgs 25.11 and above, since it is based on changes made to `gradle-packages.mkGradle`.
-
-## Additional Information
-
-### Maven Repositories are not Mirrors
-
-Sadly, many Maven repositories contain the same artifacts but with different metadata. One such example is the Kotlin JVM Gradle Plugin ([Maven Central](https://repo1.maven.org/maven2/org/jetbrains/kotlin/jvm/org.jetbrains.kotlin.jvm.gradle.plugin/1.7.10/org.jetbrains.kotlin.jvm.gradle.plugin-1.7.10.pom) vs. [gradle plugin portal](https://plugins.gradle.org/m2/org/jetbrains/kotlin/jvm/org.jetbrains.kotlin.jvm.gradle.plugin/1.7.10/org.jetbrains.kotlin.jvm.gradle.plugin-1.7.10.pom)). To work around this, `buildGradleApplication` uses a special `fetchArtifact` builder instead of the classic [`fetchurl` fetchers](https://ryantm.github.io/nixpkgs/builders/fetchers/). `fetchArtifact` will try to download a given artifact with a given hash from all provided urls. If the checksum of the downloaded artifact differs from the expected one, it is quietly ignored and the next url is tried instead.
-
-### Very slow first build
-
-The first build with `buildGradleApplication` might be very slow. The reason for this is, that each maven artifact is a dedicated derivation and derivations are not built in parallel by default.
-You can speed up the first build by enabling concurrent builds, for example:
-
-```bash
-nix build -j 15
-```
 
 ## Contributing
 
