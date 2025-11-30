@@ -256,6 +256,10 @@ If you _must_ use these features (please, don't!), use [dependency locking](http
 
 For more details, see the ["Making sure resolution is reproducible" section in the Gradle Docs](https://docs.gradle.org/current/userguide/resolution_strategy_tuning.html#reproducible-resolution).
 
+## How it works
+
+![Flow diagram of buildGradleApplication internals](docs/buildGradleApplication-flow.drawio.svg)
+
 ## Additional Information
 
 ### Maven Repositories are not Mirrors
