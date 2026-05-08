@@ -25,8 +25,9 @@
         overlays = {
           default = final: prev: {
             fetchArtifact = prev.callPackage ./fetchArtefact/default.nix {};
-            mkM2Repository = prev.callPackage ./buildGradleApplication/mkM2Repository.nix {};
-            buildGradleApplication = prev.callPackage ./buildGradleApplication/default.nix {};
+            mkM2Repository = prev.callPackage ./buildGradle/mkM2Repository.nix {};
+            buildGradleArtifact = prev.callPackage ./buildGradle/buildGradleArtifact.nix {};
+            buildGradleApplication = prev.callPackage ./buildGradle/buildGradleApplication.nix {};
             updateVerificationMetadata = prev.callPackage ./update-verification-metadata/default.nix {};
             gradleFromWrapper = import ./gradleFromWrapper final;
           };
@@ -43,18 +44,19 @@
         pkgs = nixpkgs.legacyPackages.${system};
       in {
         formatter = pkgs.alejandra;
-        legacyPackages = let
+        legacyPackages = rec {
           fetchArtifact = pkgs.callPackage ./fetchArtefact/default.nix {};
-          mkM2Repository = pkgs.callPackage ./buildGradleApplication/mkM2Repository.nix {
+          mkM2Repository = pkgs.callPackage ./buildGradle/mkM2Repository.nix {
             inherit fetchArtifact;
           };
           updateVerificationMetadata = pkgs.callPackage ./update-verification-metadata/default.nix {};
-          buildGradleApplication = pkgs.callPackage ./buildGradleApplication/default.nix {
+          buildGradleArtifact = pkgs.callPackage ./buildGradle/buildGradleArtifact.nix {
             inherit mkM2Repository updateVerificationMetadata;
           };
+          buildGradleApplication = pkgs.callPackage ./buildGradle/buildGradleApplication.nix {
+            inherit mkM2Repository updateVerificationMetadata buildGradleArtifact;
+          };
           gradleFromWrapper = import ./gradleFromWrapper pkgs;
-        in {
-          inherit fetchArtifact mkM2Repository buildGradleApplication updateVerificationMetadata gradleFromWrapper;
         };
       };
     };

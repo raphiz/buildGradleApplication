@@ -71,7 +71,9 @@ buildGradleApplication {
 
 For further examples, checkout the [examples directory](./examples)
 
-All available parameters of `buildGradleApplication` are documented in the [source code](https://github.com/raphiz/buildGradleApplication/blob/main/buildGradleApplication/default.nix)
+All available parameters of `buildGradleApplication` are documented in the [source code](https://github.com/raphiz/buildGradleApplication/blob/main/buildGradle/buildGradleApplication.nix)
+
+For more control over the installation phase, you may use `buildGradleArtifact`, and extra arguments will be passed to mkDerivation, so you can tweak preBuild, postBuild, etc. You can use script `$linkToJars folder` from `buildPhase` or other phases in order to change every jar inside a folder with a link to nix store as an usual nix build would normally do.
 
 ## Rules
 
@@ -198,7 +200,7 @@ buildGradleApplication {
 
 ### Rule #5: Using the `application` Plugin
 
-Currently, the focus of this tool is to package Gradle applications. In order to launch a java application, we need both an main class as an entry point and a runtime classpath. The latter must contain both third-party dependencies fetched from a maven repository and project local libraries generated from other projects within the same build.
+The main focus of this tool is to package Gradle applications with `buildGradleApplication`. In order to launch a java application, we need both an main class as an entry point and a runtime classpath. The latter must contain both third-party dependencies fetched from a maven repository and project local libraries generated from other projects within the same build.
 
 Gradle provides exactly that (a so called [Distribution](https://docs.gradle.org/current/userguide/distribution_plugin.html#distribution_plugin)) with the built in [`application` plugin](https://docs.gradle.org/current/userguide/application_plugin.html). The required configuration is quite reasonable:
 
